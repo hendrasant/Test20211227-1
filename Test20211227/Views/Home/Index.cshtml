@@ -1,0 +1,92 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+@model Test20211227.Models.OpenWeatherMap
+
+ <form action="/">
+     <div id="loading-image"> <img src="~/loading.gif" style="width:70px;"/>Loading api countriesnow.space</div>    
+<table>
+    <tr><td>Country</td><td>
+<select id="mycountry" name="mycountry">
+</select></td></tr>
+     <tr><td>City</td><td>  
+<select id="myCity" name="myCity">
+</select></td></tr>
+<tr><td colspan="2">
+    <input type="submit" style="float:right;"/> 
+</td></tr>
+</table>
+</form>
+<div id="apiDiv">
+
+
+    <div id="message">@(new HtmlString(Model.apiResponse))</div>
+</div>
+
+@section scripts {
+
+<script>
+    $('#loading-image').show();
+
+              $.ajax({
+                url:"https://localhost:44387/" + "home/getCityCountries",
+                type:'GET',
+                dataType: 'json',
+                success: function( json ) {
+                   console.log(json.data);
+                    $.each(json.data, function(i, value) {
+                        //  console.log(value);
+                        $('#mycountry').append($('<option>').text(value.name).attr('value', value.name));
+                    });
+
+                      var dat =   {"country":json.data[0].name} ;
+                 $.ajax({
+                    url:"https://countriesnow.space/api/v0.1/countries/cities",
+                type:'POST',
+                    data: JSON.stringify(dat),
+                dataType: 'Json',
+                headers: {
+                 "content-type": "application/json;charset=UTF-8" // Or add this line
+            },
+                success: function( json ) {
+                    $.each(json.data, function(i, value) {
+                        $('#myCity').append($('<option>').text(value).attr('value', value));
+                    });
+                      
+                },
+                 complete: function(){
+        $('#loading-image').hide();
+      }
+                
+            });
+
+                }
+            });
+
+          $('#mycountry').on('change', function() {
+                $('#loading-image').show();
+                var dat =   {"country": this.value} ;
+                 $.ajax({
+                    url:"https://countriesnow.space/api/v0.1/countries/cities",
+                type:'POST',
+                    data: JSON.stringify(dat),
+                dataType: 'Json',
+                headers: {
+                 "content-type": "application/json;charset=UTF-8" // Or add this line
+            },
+                success: function( json ) {
+                        $('#myCity').find('option').remove().end() ;
+   
+                    $.each(json.data, function(i, value) {
+                        $('#myCity').append($('<option>').text(value).attr('value', value));
+                    });
+                     
+                } ,complete: function(){
+        $('#loading-image').hide();
+      }
+                
+            });
+        });
+</script>
+
+}
